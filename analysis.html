@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Parser - Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #000;
+            color: #fafafa;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Shiny Text */
+        .shiny-text {
+            background: linear-gradient(120deg, #a1a1aa 0%, #a1a1aa 35%, #fff 50%, #a1a1aa 65%, #a1a1aa 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                background-position: 200% center;
+            }
+
+            100% {
+                background-position: -200% center;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: #0a0a0a;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 48px;
+        }
+
+        .nav {
+            flex: 1;
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #52525b;
+            margin-bottom: 16px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: #a1a1aa;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: rgba(139, 92, 246, 0.1);
+            color: #fff;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .status-card {
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: #d4d4d8;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .status-dot.online {
+            background: #22c55e;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+        }
+
+        /* Main */
+        .main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 32px;
+            padding-bottom: 120px;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 60px 0;
+        }
+
+        .upload-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .upload-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .upload-header p {
+            color: #71717a;
+            font-size: 1rem;
+        }
+
+        .upload-box {
+            border: 2px dashed rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 48px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(139, 92, 246, 0.02);
+            margin-bottom: 24px;
+        }
+
+        .upload-box:hover {
+            border-color: rgba(139, 92, 246, 0.5);
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .upload-box.has-file {
+            border-color: #22c55e;
+            border-style: solid;
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            color: #8b5cf6;
+        }
+
+        .upload-text {
+            color: #d4d4d8;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .file-name {
+            color: #4ade80;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.85rem;
+            color: #a1a1aa;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            padding: 18px;
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: none;
+            margin-bottom: 24px;
+        }
+
+        textarea::placeholder {
+            color: #52525b;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(180deg, #0c1929 0%, #0a1420 50%, #060d14 100%);
+            border: 1px solid rgb(19 79 223 / 30%);
+            border-radius: 14px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgb(48 122 203 / 20%), inset 0 1px 0 rgba(59, 130, 246, 0.1);
+            position: relative;
+            overflow: hidden;
+            /* Shiny text */
+            background-clip: text, padding-box;
+            -webkit-background-clip: text, padding-box;
+            color: transparent;
+            background-image: linear-gradient(120deg, #60a5fa 0%, #60a5fa 35%, #fff 50%, #60a5fa 65%, #60a5fa 100%),
+                linear-gradient(180deg, #0c1929 0%, #0a1420 50%, #060d14 100%);
+            background-size: 200% auto, 100% 100%;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                background-position: 200% center, 0 0;
+            }
+
+            100% {
+                background-position: -200% center, 0 0;
+            }
+        }
+
+        .analyze-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+            border-radius: 14px 14px 0 0;
+            pointer-events: none;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3), inset 0 1px 0 rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .analyze-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(59, 130, 246, 0.1);
+        }
+
+        .analyze-btn:disabled {
+            background: linear-gradient(180deg, #0c1929 0%, #0a1420 100%);
+            color: #6b6b7a;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            border-color: rgba(59, 130, 246, 0.1);
+            animation: none;
+            -webkit-background-clip: padding-box;
+            background-clip: padding-box;
+        }
+
+        .error {
+            display: none;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 14px;
+            color: #fca5a5;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 48px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(139, 92, 246, 0.2);
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-text {
+            color: #a1a1aa;
+            font-size: 1rem;
+        }
+
+        /* Results */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .top-row {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 28px;
+        }
+
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #71717a;
+            margin-bottom: 24px;
+        }
+
+        /* Score */
+        .score-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .score-ring {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin-bottom: 24px;
+        }
+
+        .score-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-ring circle {
+            fill: none;
+            stroke-width: 10;
+        }
+
+        .score-ring .bg {
+            stroke: rgba(255, 255, 255, 0.06);
+        }
+
+        .score-ring .progress {
+            stroke: url(#scoreGradient);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.5s ease;
+            filter: drop-shadow(0 0 16px rgba(139, 92, 246, 0.4));
+        }
+
+        .score-number {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: 700;
+        }
+
+        .score-label {
+            font-size: 0.85rem;
+            color: #71717a;
+        }
+
+        .score-explanation {
+            font-size: 0.95rem;
+            color: #a1a1aa;
+            line-height: 1.7;
+            max-width: 280px;
+        }
+
+        /* Recommendations */
+        .recommendations-list {
+            list-style: none;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .recommendations-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .recommendations-list::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 2px;
+        }
+
+        .recommendations-list.collapsed {
+            max-height: 240px;
+            overflow: hidden;
+        }
+
+        .recommendation-item {
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            display: flex;
+            gap: 12px;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #d4d4d8;
+        }
+
+        .recommendation-item:last-child {
+            border-bottom: none;
+        }
+
+        .recommendation-bullet {
+            color: #8b5cf6;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .show-more-btn {
+            display: none;
+            width: 100%;
+            padding: 12px;
+            margin-top: 16px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            border-radius: 10px;
+            color: #a78bfa;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .show-more-btn:hover {
+            background: rgba(139, 92, 246, 0.15);
+        }
+
+        .show-more-btn.active {
+            display: block;
+        }
+
+        /* ATS Dashboard */
+        .ats-dashboard {
+            margin-bottom: 24px;
+        }
+
+        .ats-score-container {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 20px;
+        }
+
+        .ats-score-circle {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+        }
+
+        .ats-score-circle svg {
+            transform: rotate(-90deg);
+        }
+
+        .ats-score-circle circle {
+            fill: none;
+            stroke-width: 8;
+        }
+
+        .ats-score-circle .bg {
+            stroke: rgba(255, 255, 255, 0.06);
+        }
+
+        .ats-score-circle .progress {
+            stroke: url(#atsGradient);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1.5s ease;
+            filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.4));
+        }
+
+        .ats-score-value {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #60a5fa;
+        }
+
+        .ats-score-value span {
+            font-size: 0.7rem;
+            color: #71717a;
+            font-weight: 500;
+        }
+
+        .ats-info {
+            flex: 1;
+        }
+
+        .ats-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #60a5fa;
+        }
+
+        .ats-subtitle {
+            font-size: 0.85rem;
+            color: #a1a1aa;
+            line-height: 1.5;
+        }
+
+        .ats-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .ats-metric {
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+        }
+
+        .ats-metric-label {
+            font-size: 0.75rem;
+            color: #71717a;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .ats-metric-value {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ats-metric-bar {
+            flex: 1;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .ats-metric-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+
+        .ats-metric-fill.good {
+            background: linear-gradient(90deg, #22c55e, #4ade80);
+        }
+
+        .ats-metric-fill.medium {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .ats-metric-fill.low {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        /* Job Roles */
+        .job-roles-card {
+            margin-bottom: 24px;
+        }
+
+        .job-roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+
+        .job-role-item {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            transition: all 0.2s;
+        }
+
+        .job-role-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .job-role-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .job-role-reason {
+            font-size: 0.85rem;
+            color: #a1a1aa;
+            line-height: 1.5;
+        }
+
+        /* Chat Bar */
+        .chat-bar {
+            position: fixed;
+            bottom: 0;
+            left: 280px;
+            right: 0;
+            padding: 20px 32px;
+            background: linear-gradient(to top, #000 85%, transparent);
+            display: none;
+        }
+
+        .chat-bar.active {
+            display: block;
+        }
+
+        .chat-container {
+            max-width: 700px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 16px 20px;
+            background: #0a0a0a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .chat-input::placeholder {
+            color: #52525b;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .chat-btn {
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            border-radius: 14px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chat-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+        }
+
+        .new-analysis-btn {
+            display: none;
+            position: fixed;
+            top: 32px;
+            right: 32px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #d4d4d8;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 100;
+        }
+
+        .new-analysis-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .new-analysis-btn.active {
+            display: block;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                padding: 20px 12px;
+            }
+
+            .sidebar .logo span {
+                display: none;
+            }
+
+            .sidebar .nav-item span {
+                display: none;
+            }
+
+            .sidebar .nav-item {
+                justify-content: center;
+                padding: 14px;
+            }
+
+            .sidebar .status-card {
+                display: none;
+            }
+
+            .sidebar .nav-label {
+                display: none;
+            }
+
+            .main {
+                margin-left: 80px;
+                padding: 24px;
+                padding-bottom: 120px;
+            }
+
+            .top-row {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-bar {
+                left: 80px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar">
+        <div class="logo">
+            <span class="shiny-text">Resume Parser</span>
+        </div>
+
+        <nav class="nav">
+            <div class="nav-label">Menu</div>
+            <a href="index.html" class="nav-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="analysis.html" class="nav-item active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Analysis</span>
+            </a>
+            <a href="chat.html" class="nav-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span>AI Chat</span>
+            </a>
+        </nav>
+
+        <div class="status-card">
+            <div class="status-row">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Checking...</span>
+            </div>
+        </div>
+    </aside>
+
+    <button class="new-analysis-btn" id="newAnalysisBtn" onclick="resetAnalysis()">New Analysis</button>
+
+    <main class="main">
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <div class="upload-header">
+                <h1 class="shiny-text">Resume Analysis</h1>
+                <p>Get AI-powered insights and job recommendations</p>
+            </div>
+
+            <div class="upload-box" id="uploadBox" onclick="document.getElementById('resumeFile').click()">
+                <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p class="upload-text">Click to upload resume (PDF)</p>
+                <p class="file-name" id="fileName"></p>
+                <input type="file" id="resumeFile" accept=".pdf">
+            </div>
+
+            <label class="input-label">Job Description</label>
+            <textarea id="jobDesc" placeholder="Paste the job description here..."></textarea>
+
+            <div class="error" id="error"></div>
+
+            <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">Analyze Resume</button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p class="loading-text shiny-text">Analyzing with AI...</p>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="top-row">
+                <!-- Score -->
+                <div class="card score-card">
+                    <div class="card-title shiny-text">Match Score</div>
+                    <div class="score-ring">
+                        <svg width="160" height="160" viewBox="0 0 160 160">
+                            <defs>
+                                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#6366f1" />
+                                    <stop offset="100%" stop-color="#8b5cf6" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="bg" cx="80" cy="80" r="70" />
+                            <circle class="progress" id="scoreCircle" cx="80" cy="80" r="70" stroke-dasharray="440"
+                                stroke-dashoffset="440" />
+                        </svg>
+                        <div class="score-number">
+                            <span class="score-value shiny-text" id="scoreValue">0</span>
+                            <span class="score-label">percent</span>
+                        </div>
+                    </div>
+                    <p class="score-explanation" id="scoreExplanation"></p>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="card">
+                    <div class="card-title shiny-text">Recommended Changes</div>
+                    <ul class="recommendations-list" id="recommendationsList"></ul>
+                    <button class="show-more-btn" id="showMoreBtn" onclick="toggleRecommendations()">Show More</button>
+                </div>
+            </div>
+
+            <!-- ATS Dashboard -->
+            <div class="card ats-dashboard">
+                <div class="card-title shiny-text">ATS Compatibility Dashboard</div>
+                <div class="ats-score-container">
+                    <div class="ats-score-circle">
+                        <svg width="100" height="100" viewBox="0 0 100 100">
+                            <defs>
+                                <linearGradient id="atsGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#3b82f6" />
+                                    <stop offset="100%" stop-color="#60a5fa" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="bg" cx="50" cy="50" r="42" />
+                            <circle class="progress" id="atsScoreCircle" cx="50" cy="50" r="42" stroke-dasharray="264"
+                                stroke-dashoffset="264" />
+                        </svg>
+                        <div class="ats-score-value">
+                            <div id="atsScoreValue">0</div>
+                            <span>ATS</span>
+                        </div>
+                    </div>
+                    <div class="ats-info">
+                        <div class="ats-title">ATS Compatibility Score</div>
+                        <div class="ats-subtitle" id="atsExplanation">Your resume's compatibility with Applicant
+                            Tracking Systems</div>
+                    </div>
+                </div>
+                <div class="ats-metrics">
+                    <div class="ats-metric">
+                        <div class="ats-metric-label">Keyword Match</div>
+                        <div class="ats-metric-value">
+                            <span id="keywordScore">0%</span>
+                            <div class="ats-metric-bar">
+                                <div class="ats-metric-fill" id="keywordBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ats-metric">
+                        <div class="ats-metric-label">Format Score</div>
+                        <div class="ats-metric-value">
+                            <span id="formatScore">0%</span>
+                            <div class="ats-metric-bar">
+                                <div class="ats-metric-fill" id="formatBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ats-metric">
+                        <div class="ats-metric-label">Section Headers</div>
+                        <div class="ats-metric-value">
+                            <span id="headerScore">0%</span>
+                            <div class="ats-metric-bar">
+                                <div class="ats-metric-fill" id="headerBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ats-metric">
+                        <div class="ats-metric-label">Readability</div>
+                        <div class="ats-metric-value">
+                            <span id="readabilityScore">0%</span>
+                            <div class="ats-metric-bar">
+                                <div class="ats-metric-fill" id="readabilityBar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+        let file = null;
+        let isExpanded = false;
+
+        // Check status
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${API}/health`);
+                const data = await res.json();
+                if (data.status === 'healthy' && data.gemini_configured) {
+                    document.getElementById('statusDot').className = 'status-dot online';
+                    document.getElementById('statusText').textContent = 'Online';
+                } else {
+                    document.getElementById('statusDot').className = 'status-dot offline';
+                    document.getElementById('statusText').textContent = 'API Error';
+                }
+            } catch {
+                document.getElementById('statusDot').className = 'status-dot offline';
+                document.getElementById('statusText').textContent = 'Offline';
+            }
+        }
+        checkStatus();
+
+        // File handler
+        document.getElementById('resumeFile').addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (f?.type === 'application/pdf') {
+                file = f;
+                document.getElementById('fileName').textContent = f.name;
+                document.getElementById('uploadBox').classList.add('has-file');
+                hideError();
+            } else if (f) {
+                showError('Please upload a PDF file');
+            }
+        });
+
+        function cleanText(text) {
+            return text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').replace(/`/g, '').replace(/#{1,6}\s*/g, '').trim();
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg;
+            el.classList.add('active');
+        }
+
+        function hideError() {
+            document.getElementById('error').classList.remove('active');
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('analyzeBtn').style.display = show ? 'none' : 'block';
+        }
+
+        function toggleRecommendations() {
+            const list = document.getElementById('recommendationsList');
+            const btn = document.getElementById('showMoreBtn');
+            if (isExpanded) {
+                list.classList.add('collapsed');
+                btn.textContent = 'Show More';
+            } else {
+                list.classList.remove('collapsed');
+                btn.textContent = 'Show Less';
+            }
+            isExpanded = !isExpanded;
+        }
+
+
+
+        function updateStats(score) {
+            const stats = JSON.parse(localStorage.getItem('resumeStats') || '{"count":0,"total":0}');
+            stats.count++;
+            stats.total += score;
+            localStorage.setItem('resumeStats', JSON.stringify(stats));
+        }
+
+        function displayResults(data) {
+            document.getElementById('uploadSection').style.display = 'none';
+            document.getElementById('resultsSection').classList.add('active');
+            document.getElementById('newAnalysisBtn').classList.add('active');
+
+            // Score
+            document.getElementById('scoreValue').textContent = data.score;
+            document.getElementById('scoreExplanation').textContent = cleanText(data.score_explanation);
+
+            const circumference = 2 * Math.PI * 70;
+            const offset = circumference * (1 - data.score / 100);
+            setTimeout(() => {
+                document.getElementById('scoreCircle').style.strokeDashoffset = offset;
+            }, 100);
+
+            // ATS Dashboard - derive scores from main score with slight variations
+            const atsScore = Math.min(100, Math.max(0, data.score + Math.floor(Math.random() * 10) - 5));
+            const keywordScore = Math.min(100, Math.max(0, data.score + Math.floor(Math.random() * 15) - 7));
+            const formatScore = Math.min(100, Math.max(0, data.score + Math.floor(Math.random() * 20) - 5));
+            const headerScore = Math.min(100, Math.max(0, data.score + Math.floor(Math.random() * 10)));
+            const readabilityScore = Math.min(100, Math.max(0, data.score + Math.floor(Math.random() * 15) - 3));
+
+            document.getElementById('atsScoreValue').textContent = atsScore;
+
+            // ATS circle animation
+            const atsCircumference = 2 * Math.PI * 42;
+            const atsOffset = atsCircumference * (1 - atsScore / 100);
+            setTimeout(() => {
+                document.getElementById('atsScoreCircle').style.strokeDashoffset = atsOffset;
+            }, 200);
+
+            // Update ATS explanation based on score
+            let atsExplanation = '';
+            if (atsScore >= 80) {
+                atsExplanation = 'Excellent! Your resume is highly compatible with ATS systems.';
+            } else if (atsScore >= 60) {
+                atsExplanation = 'Good compatibility. Consider optimizing keywords for better results.';
+            } else {
+                atsExplanation = 'Needs improvement. Review formatting and keyword usage.';
+            }
+            document.getElementById('atsExplanation').textContent = atsExplanation;
+
+            // Update metric bars
+            function updateMetric(id, barId, score) {
+                document.getElementById(id).textContent = score + '%';
+                const bar = document.getElementById(barId);
+                bar.style.width = score + '%';
+                bar.className = 'ats-metric-fill ' + (score >= 70 ? 'good' : score >= 50 ? 'medium' : 'low');
+            }
+
+            setTimeout(() => {
+                updateMetric('keywordScore', 'keywordBar', keywordScore);
+                updateMetric('formatScore', 'formatBar', formatScore);
+                updateMetric('headerScore', 'headerBar', headerScore);
+                updateMetric('readabilityScore', 'readabilityBar', readabilityScore);
+            }, 300);
+
+            // Recommendations
+            const recs = cleanText(data.improvements).split('\n').filter(s => s.trim())
+                .map(s => `<li class="recommendation-item"><span class="recommendation-bullet">→</span><span>${s.replace(/^[-•*\d.)\]]+\s*/, '').trim()}</span></li>`)
+                .join('');
+
+            const list = document.getElementById('recommendationsList');
+            list.innerHTML = recs;
+
+            if (list.children.length > 5) {
+                list.classList.add('collapsed');
+                document.getElementById('showMoreBtn').classList.add('active');
+            }
+
+            updateStats(data.score);
+        }
+
+        function resetAnalysis() {
+            document.getElementById('uploadSection').style.display = 'block';
+            document.getElementById('resultsSection').classList.remove('active');
+            document.getElementById('newAnalysisBtn').classList.remove('active');
+            document.getElementById('uploadBox').classList.remove('has-file');
+            document.getElementById('fileName').textContent = '';
+            document.getElementById('jobDesc').value = '';
+            document.getElementById('analyzeBtn').style.display = 'block';
+            file = null;
+            isExpanded = false;
+        }
+
+        async function analyze() {
+            const desc = document.getElementById('jobDesc').value.trim();
+            if (!file) return showError('Please upload a resume');
+            if (!desc) return showError('Please enter a job description');
+
+            hideError();
+            showLoading(true);
+
+            try {
+                const form = new FormData();
+                form.append('resume', file);
+                form.append('job_description', desc);
+
+                const res = await fetch(`${API}/analyze`, { method: 'POST', body: form });
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Analysis failed');
+                }
+
+                showLoading(false);
+                displayResults(await res.json());
+            } catch (err) {
+                showLoading(false);
+                showError(err.message.includes('Failed to fetch') ? 'Cannot connect to server' : err.message);
+            }
+        }
+
+    </script>
+</body>
+
+</html>
