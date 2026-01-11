@@ -35,6 +35,11 @@ class AnalysisResponse(BaseModel):
     summary: str
     improvements: str
     job_roles: str
+    ats_score: int
+    keyword_score: int
+    format_score: int
+    header_score: int
+    readability_score: int
 
 def parse_analysis(response_text: str) -> dict:
     """Parse the Gemini response into structured data"""
@@ -124,12 +129,53 @@ def parse_analysis(response_text: str) -> dict:
                 sections['improvements'] = "Consider tailoring your resume to highlight relevant skills mentioned in the job description"
                 sections['job_roles'] = "Software Engineer, Data Analyst, Technical Consultant"
     
+    # Extract ATS scores
+    ats_scores = {
+        'ats_score': 0,
+        'keyword_score': 0,
+        'format_score': 0,
+        'header_score': 0,
+        'readability_score': 0
+    }
+    
+    # Look for ATS score patterns
+    ats_patterns = [
+        (r'ats\s*(?:score|compatibility)?\s*[:\-]?\s*(\d{1,3})', 'ats_score'),
+        (r'keyword\s*(?:score|match)?\s*[:\-]?\s*(\d{1,3})', 'keyword_score'),
+        (r'format(?:ting)?\s*(?:score)?\s*[:\-]?\s*(\d{1,3})', 'format_score'),
+        (r'(?:section\s*)?header\s*(?:score)?\s*[:\-]?\s*(\d{1,3})', 'header_score'),
+        (r'readability\s*(?:score)?\s*[:\-]?\s*(\d{1,3})', 'readability_score'),
+    ]
+    
+    for pattern, key in ats_patterns:
+        match = re.search(pattern, response_text, re.IGNORECASE)
+        if match:
+            val = int(match.group(1))
+            ats_scores[key] = max(0, min(val, 100))
+    
+    # If ATS score not found, derive from main score
+    if ats_scores['ats_score'] == 0:
+        ats_scores['ats_score'] = score
+    if ats_scores['keyword_score'] == 0:
+        ats_scores['keyword_score'] = score
+    if ats_scores['format_score'] == 0:
+        ats_scores['format_score'] = score
+    if ats_scores['header_score'] == 0:
+        ats_scores['header_score'] = score
+    if ats_scores['readability_score'] == 0:
+        ats_scores['readability_score'] = score
+    
     return {
         'score': score,
         'score_explanation': sections['score_explanation'][:600] if sections['score_explanation'] else "Resume evaluated based on job requirements",
         'summary': sections['summary'][:1200] if sections['summary'] else "Professional background and qualifications reviewed",
         'improvements': sections['improvements'][:3000] if sections['improvements'] else "Focus on highlighting relevant experience and skills that match the job description",
-        'job_roles': sections['job_roles'][:1500] if sections['job_roles'] else "Consider roles aligned with your technical expertise and experience"
+        'job_roles': sections['job_roles'][:1500] if sections['job_roles'] else "Consider roles aligned with your technical expertise and experience",
+        'ats_score': ats_scores['ats_score'],
+        'keyword_score': ats_scores['keyword_score'],
+        'format_score': ats_scores['format_score'],
+        'header_score': ats_scores['header_score'],
+        'readability_score': ats_scores['readability_score']
     }
 
 @app.post("/analyze", response_model=AnalysisResponse)
@@ -163,6 +209,13 @@ Please provide your analysis in the following format:
 SCORE: [Provide a numerical score from 0-100 indicating how well the resume matches the job requirements]
 
 SCORE EXPLANATION: [Provide 2-3 sentences explaining why you gave this score, mentioning key matching and missing elements]
+
+ATS SCORES: [Provide these specific ATS compatibility metrics, each as a number from 0-100]
+- ATS SCORE: [Overall ATS compatibility score]
+- KEYWORD SCORE: [How well the resume keywords match the job description]
+- FORMAT SCORE: [How ATS-friendly the resume formatting is]
+- HEADER SCORE: [How well standard section headers are used]
+- READABILITY SCORE: [How easy the resume is to parse]
 
 SUMMARY: [Provide a 3-4 sentence professional summary of the candidate's background, key skills, and experience level]
 
