@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer - Find Jobs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 24px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        .shiny-text {
+            background: linear-gradient(120deg, #888 0%, #888 40%, #fff 50%, #888 60%, #888 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 4s linear infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                background-position: 200% center;
+            }
+
+            100% {
+                background-position: -200% center;
+            }
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-tab {
+            font-size: 0.95rem;
+            color: #666;
+            text-decoration: none;
+            padding: 8px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover {
+            color: #999;
+        }
+
+        .nav-tab.active {
+            color: #fff;
+            border-bottom-color: #fff;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-dot.online {
+            background: #22c55e;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 0;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .welcome h2 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .welcome p {
+            font-size: 1rem;
+            color: #555;
+            max-width: 500px;
+            margin: 0 auto 32px;
+            line-height: 1.6;
+        }
+
+        .file-upload {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 24px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #888;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-upload:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .file-upload.attached {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .file-upload svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .find-btn {
+            margin-top: 16px;
+            padding: 14px 32px;
+            background: #fff;
+            border: none;
+            border-radius: 10px;
+            color: #000;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .find-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+
+        .find-btn:disabled {
+            background: #222;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .resume-insights {
+            margin-top: 32px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+        }
+
+        .resume-insights h3 {
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #555;
+            margin-bottom: 16px;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .insight-item {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+
+        .insight-label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .insight-value {
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        .insight-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .tag {
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        .jobs-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 32px 0 20px;
+        }
+
+        .jobs-count {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .job-card {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .job-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .job-header {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .job-title {
+            font-size: 1.05rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .job-company {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .match-badge {
+            padding: 4px 10px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #22c55e;
+            white-space: nowrap;
+        }
+
+        .match-badge.high {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .match-badge.medium {
+            background: rgba(251, 191, 36, 0.1);
+            border-color: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .match-badge.low {
+            background: rgba(156, 163, 175, 0.1);
+            border-color: rgba(156, 163, 175, 0.2);
+            color: #9ca3af;
+        }
+
+        .job-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .job-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .job-description {
+            font-size: 0.9rem;
+            color: #999;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .job-source {
+            font-size: 0.75rem;
+            color: #555;
+        }
+
+        .typing {
+            display: none;
+            gap: 6px;
+            padding: 20px;
+            justify-content: center;
+        }
+
+        .typing.active {
+            display: flex;
+        }
+
+        .typing span {
+            width: 4px;
+            height: 4px;
+            background: #444;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 0.85rem;
+            color: #f87171;
+            text-align: center;
+        }
+
+        .content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: #222;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 640px) {
+            .header {
+                padding: 16px 20px;
+            }
+
+            .main {
+                padding: 0 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="shiny-text">Resume Analyzer</span>
+        </div>
+        <nav class="nav-tabs">
+            <a href="/dashboard" class="nav-tab">Dashboard</a>
+            <a href="/analysis" class="nav-tab">Analysis</a>
+            <a href="/chat" class="nav-tab">Chat</a>
+            <a href="/jobs" class="nav-tab active">Find Jobs</a>
+            <a href="/profile" class="nav-tab">Profile</a>
+        </nav>
+        <div class="status-badge">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Connecting...</span>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="content" id="content">
+            <div class="welcome" id="welcome">
+                <h2>Find Matching Jobs</h2>
+                <p>Upload your resume and specify your preferences to discover matching jobs from multiple job boards.
+                </p>
+
+                <label class="file-upload" id="fileBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    <span id="fileName">Upload Resume (PDF)</span>
+                    <input type="file" id="resumeFile" accept=".pdf">
+                </label>
+
+                <div style="margin-top: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    <input type="text" id="jobQuery"
+                        placeholder="e.g., Software Engineer, Internship in Chicago, Remote Python..."
+                        style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; color: #fff; font-size: 0.95rem; font-family: inherit;">
+                </div>
+
+                <br>
+                <button class="find-btn" id="findBtn" onclick="findJobs()">Find Jobs</button>
+            </div>
+
+            <div class="typing" id="typing">
+                <span></span><span></span><span></span>
+            </div>
+
+            <div id="resultsContainer" style="display: none;">
+                <div class="resume-insights" id="resumeInsights"></div>
+
+                <div class="jobs-header">
+                    <h3 style="font-size: 1.1rem; font-weight: 500;">Matching Jobs</h3>
+                    <span class="jobs-count" id="jobsCount">0 jobs found</span>
+                </div>
+
+                <div id="jobsList"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+        let file = null;
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${API}/health`);
+                const data = await res.json();
+                if (data.status === 'healthy' && data.gemini_configured) {
+                    document.getElementById('statusDot').className = 'status-dot online';
+                    document.getElementById('statusText').textContent = 'Ready';
+                } else {
+                    document.getElementById('statusDot').className = 'status-dot offline';
+                    document.getElementById('statusText').textContent = 'API Error';
+                }
+            } catch {
+                document.getElementById('statusDot').className = 'status-dot offline';
+                document.getElementById('statusText').textContent = 'Offline';
+            }
+        }
+        checkStatus();
+
+        document.getElementById('resumeFile').addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (f?.type === 'application/pdf') {
+                file = f;
+                document.getElementById('fileName').textContent = f.name;
+                document.getElementById('fileBtn').classList.add('attached');
+                document.getElementById('findBtn').disabled = false;
+            } else if (f) {
+                showError('Please upload a PDF file');
+            }
+        });
+
+        function showError(msg) {
+            const welcome = document.getElementById('welcome');
+            if (welcome) welcome.remove();
+
+            const error = document.createElement('div');
+            error.className = 'error-msg';
+            error.textContent = msg;
+            document.getElementById('content').prepend(error);
+        }
+
+        function getMatchBadge(score) {
+            if (score >= 70) return `<span class="match-badge high">${score}% Match</span>`;
+            if (score >= 40) return `<span class="match-badge medium">${score}% Match</span>`;
+            return `<span class="match-badge low">${score}% Match</span>`;
+        }
+
+        function displayResumeInsights(data) {
+            const html = `
+                <h3>Resume Analysis</h3>
+                <div class="insights-grid">
+                    <div class="insight-item">
+                        <div class="insight-label">Seniority</div>
+                        <div class="insight-value">${data.seniority || 'N/A'}</div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-label">Experience</div>
+                        <div class="insight-value">${data.experience_years || 0} years</div>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-label">Location</div>
+                        <div class="insight-value">${data.location || 'Flexible'}</div>
+                    </div>
+                </div>
+                <div style="margin-top: 16px;">
+                    <div class="insight-label">Top Skills</div>
+                    <div class="insight-tags">
+                        ${(data.skills || []).slice(0, 10).map(s => `<span class="tag">${s}</span>`).join('')}
+                    </div>
+                </div>
+                <div style="margin-top: 12px;">
+                    <div class="insight-label">Target Roles</div>
+                    <div class="insight-tags">
+                        ${(data.roles || []).map(r => `<span class="tag">${r}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+            document.getElementById('resumeInsights').innerHTML = html;
+        }
+
+        function displayJobs(jobs) {
+            if (jobs.length === 0) {
+                document.getElementById('jobsList').innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No jobs found. Try updating your resume or check back later.</p>';
+                return;
+            }
+
+            const html = jobs.map(job => `
+                <div class="job-card" onclick="window.open('${job.url}', '_blank')">
+                    <div class="job-header">
+                        <div>
+                            <div class="job-title">${job.title}</div>
+                            <div class="job-company">${job.company}</div>
+                        </div>
+                        ${getMatchBadge(Math.round(job.match_score))}
+                    </div>
+                    <div class="job-meta">
+                        <span>📍 ${job.location}</span>
+                        ${job.remote ? '<span>🏠 Remote</span>' : ''}
+                        ${job.salary > 0 ? `<span>💰 $${Math.round(job.salary / 1000)}k</span>` : ''}
+                        <span>📅 ${job.posted_date ? new Date(job.posted_date).toLocaleDateString() : 'Recently'}</span>
+                    </div>
+                    <div class="job-description">${job.description}</div>
+                    <div class="job-source">via ${job.source}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('jobsList').innerHTML = html;
+            document.getElementById('jobsCount').textContent = `${jobs.length} jobs found`;
+        }
+
+        async function findJobs() {
+            const query = document.getElementById('jobQuery').value.trim();
+
+            if (!file && !query) {
+                showError('Please upload a resume or enter job preferences');
+                return;
+            }
+
+            const welcome = document.getElementById('welcome');
+            if (welcome) welcome.style.display = 'none';
+
+            document.getElementById('typing').classList.add('active');
+            document.getElementById('findBtn').disabled = true;
+
+            try {
+                const form = new FormData();
+                if (file) form.append('resume', file);
+                form.append('query', query);
+
+                const res = await fetch(`${API}/api/find-jobs`, {
+                    method: 'POST',
+                    body: form
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Job search failed');
+                }
+
+                const data = await res.json();
+
+                document.getElementById('typing').classList.remove('active');
+                document.getElementById('resultsContainer').style.display = 'block';
+
+                if (data.success) {
+                    displayResumeInsights(data.resume_data);
+                    displayJobs(data.jobs);
+                } else {
+                    showError(data.error || 'Failed to find jobs');
+                }
+
+            } catch (err) {
+                document.getElementById('typing').classList.remove('active');
+                if (err.message.includes('Failed to fetch')) {
+                    showError('Unable to connect to server. Please ensure the backend is running.');
+                } else {
+                    showError(err.message);
+                }
+            } finally {
+                document.getElementById('findBtn').disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

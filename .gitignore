@@ -19,3 +19,10 @@ __pycache__/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Test files with sensitive data
+test_db.py
+setup_neon.py
+
+# Logs
+*.log

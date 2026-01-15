@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer - Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 20px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .logo {
+            font-size: 1.2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            color: #888;
+        }
+
+        .logo span {
+            color: #fff;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-tab {
+            font-size: 0.9rem;
+            color: #555;
+            text-decoration: none;
+            padding: 8px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover {
+            color: #888;
+        }
+
+        .nav-tab.active {
+            color: #fff;
+            border-bottom-color: #fff;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-dot.online {
+            background: #22c55e;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+        }
+
+        .chat-welcome {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .chat-welcome h1 {
+            font-size: 2.2rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .chat-welcome p {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 48px;
+        }
+
+        /* Options Grid */
+        .options-section {
+            margin-bottom: 48px;
+        }
+
+        .options-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #444;
+            margin-bottom: 16px;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .option-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            color: #666;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-btn:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            color: #999;
+        }
+
+        .option-btn.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        /* Input Area */
+        .input-section {
+            width: 100%;
+            max-width: 600px;
+            text-align: left;
+        }
+
+        .file-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 18px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            color: #888;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .file-btn:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            color: #fff;
+        }
+
+        .file-btn.attached {
+            border-color: #22c55e;
+            color: #22c55e;
+        }
+
+        .file-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .file-btn input {
+            display: none;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .input-wrapper {
+            flex: 1;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: none;
+            transition: all 0.2s;
+            min-height: 52px;
+            max-height: 160px;
+        }
+
+        textarea::placeholder {
+            color: #444;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            background: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.15);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .send-btn svg {
+            width: 18px;
+            height: 18px;
+            color: #000;
+        }
+
+        /* Chat Messages */
+        .chat-container {
+            display: none;
+            width: 100%;
+            max-width: 700px;
+            flex-direction: column;
+            height: calc(100vh - 120px);
+        }
+
+        .chat-container.active {
+            display: flex;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 0;
+        }
+
+        .message {
+            margin-bottom: 24px;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message.user {
+            margin-left: auto;
+        }
+
+        .message.assistant {
+            margin-right: auto;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-label {
+            font-size: 0.7rem;
+            color: #555;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .message.user .message-label {
+            text-align: right;
+        }
+
+        .message-content {
+            padding: 16px 20px;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        .message.user .message-content {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-radius: 16px 16px 4px 16px;
+        }
+
+        .message.assistant .message-content {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: #ccc;
+            border-radius: 16px 16px 16px 4px;
+        }
+
+        /* Structured Response Styles */
+        .message-content h3 {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            margin: 16px 0 8px 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .message-content ul,
+        .message-content ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .message-content li {
+            margin-bottom: 6px;
+            color: #aaa;
+        }
+
+        .message-content .ats-score {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1));
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #22c55e;
+            margin-bottom: 12px;
+        }
+
+        .message-content .section {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+
+        .message-content code {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+
+        .message-content strong {
+            color: #fff;
+        }
+
+        .message-content em {
+            color: #60a5fa;
+            font-style: normal;
+        }
+
+        .typing {
+            display: none;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            width: fit-content;
+            gap: 6px;
+        }
+
+        .typing.active {
+            display: flex;
+        }
+
+        .typing span {
+            width: 6px;
+            height: 6px;
+            background: #555;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-6px);
+            }
+        }
+
+        .chat-input-bottom {
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        @media (max-width: 640px) {
+            .header {
+                padding: 16px 20px;
+            }
+
+            .main {
+                padding: 24px 16px;
+            }
+
+            .chat-welcome h1 {
+                font-size: 1.6rem;
+            }
+
+            .options-grid {
+                gap: 8px;
+            }
+
+            .option-btn {
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo"><span>Resume</span> Parser</div>
+        <nav class="nav-tabs">
+            <a href="/dashboard" class="nav-tab">Dashboard</a>
+            <a href="/analysis" class="nav-tab">Analysis</a>
+            <a href="/chat" class="nav-tab active">Chat</a>
+            <a href="/profile" class="nav-tab">Profile</a>
+        </nav>
+        <div class="status-badge">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Connecting...</span>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- Welcome State -->
+        <div class="chat-welcome" id="welcomeState">
+            <h1>Analyze Your Resume</h1>
+            <p>Upload your resume and provide a job description to receive AI-powered insights and recommendations.</p>
+
+            <div class="options-section">
+                <div class="options-title">Analysis Focus</div>
+                <div class="options-grid">
+                    <button class="option-btn active" data-option="general"
+                        onclick="toggleOption(this)">General</button>
+                    <button class="option-btn" data-option="ats" onclick="toggleOption(this)">ATS Check</button>
+                    <button class="option-btn" data-option="keywords" onclick="toggleOption(this)">Keywords</button>
+                    <button class="option-btn" data-option="formatting" onclick="toggleOption(this)">Formatting</button>
+                    <button class="option-btn" data-option="skills" onclick="toggleOption(this)">Skills Gap</button>
+                    <button class="option-btn" data-option="experience" onclick="toggleOption(this)">Experience</button>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label class="file-btn" id="fileBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    <span id="fileName">Attach resume</span>
+                    <input type="file" id="resumeFile" accept=".pdf">
+                </label>
+
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <textarea id="messageInput" placeholder="Paste job description..." rows="1"></textarea>
+                    </div>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat State -->
+        <div class="chat-container" id="chatContainer">
+            <div class="messages" id="messages">
+                <div class="typing" id="typing">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+
+            <div class="chat-input-bottom">
+                <div class="input-row">
+                    <div class="input-wrapper">
+                        <textarea id="chatInput" placeholder="Ask a follow-up question..." rows="1"></textarea>
+                    </div>
+                    <button class="send-btn" id="chatSendBtn" onclick="sendFollowUp()">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+        let file = null;
+        let selectedOptions = new Set(['general']);
+        const textarea = document.getElementById('messageInput');
+        const chatTextarea = document.getElementById('chatInput');
+
+        // Auto-expand textareas
+        [textarea, chatTextarea].forEach(ta => {
+            ta.addEventListener('input', () => {
+                ta.style.height = 'auto';
+                ta.style.height = Math.min(ta.scrollHeight, 140) + 'px';
+            });
+            ta.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (ta === textarea) sendMessage();
+                    else sendFollowUp();
+                }
+            });
+        });
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${API}/health`);
+                const data = await res.json();
+                if (data.status === 'healthy' && data.gemini_configured) {
+                    document.getElementById('statusDot').className = 'status-dot online';
+                    document.getElementById('statusText').textContent = 'Ready';
+                } else {
+                    document.getElementById('statusDot').className = 'status-dot offline';
+                    document.getElementById('statusText').textContent = 'API Error';
+                }
+            } catch {
+                document.getElementById('statusDot').className = 'status-dot offline';
+                document.getElementById('statusText').textContent = 'Offline';
+            }
+        }
+
+        document.getElementById('resumeFile').addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (f?.type === 'application/pdf') {
+                file = f;
+                document.getElementById('fileName').textContent = f.name;
+                document.getElementById('fileBtn').classList.add('attached');
+            }
+        });
+
+        function toggleOption(el) {
+            const option = el.dataset.option;
+            if (selectedOptions.has(option)) {
+                selectedOptions.delete(option);
+                el.classList.remove('active');
+            } else {
+                selectedOptions.add(option);
+                el.classList.add('active');
+            }
+        }
+
+        function cleanText(text) {
+            if (!text) return '';
+
+            let html = text;
+
+            // Format ATS Score at the beginning
+            html = html.replace(/^(ATS Score:\s*\d+\/100)/m, '<div class="ats-score">$1</div>');
+
+            // Format section headers (Skills Gap Analysis:, Recommendations:, etc.)
+            html = html.replace(/^((?:Skills Gap|ATS|Keyword|Formatting|Experience|General)(?:\s+\w+)*):$/gm, '<h3>$1</h3>');
+            html = html.replace(/^(Recommendations|Summary|Analysis|Overview|Suggestions|Improvements|Strengths|Weaknesses):$/gm, '<h3>$1</h3>');
+
+            // Format numbered headers
+            html = html.replace(/^(\d+\.\s*.+?):?\s*$/gm, '<h3>$1</h3>');
+
+            // Format bullet points
+            html = html.replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>');
+
+            // Wrap consecutive list items in ul
+            html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+            // Bold text
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // Italic text  
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+            // Convert newlines to breaks (but not inside lists)
+            html = html.replace(/\n(?!<)/g, '<br>');
+
+            // Clean up extra breaks
+            html = html.replace(/<br>\s*<br>/g, '<br>');
+            html = html.replace(/<br><(h3|ul)/g, '<$1');
+            html = html.replace(/<\/(h3|ul)><br>/g, '</$1>');
+
+            return html;
+        }
+
+        function addMessage(role, content) {
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            div.innerHTML = `
+                <div class="message-label">${role === 'user' ? 'You' : 'AI Assistant'}</div>
+                <div class="message-content">${role === 'assistant' ? cleanText(content) : content}</div>
+            `;
+            document.getElementById('messages').insertBefore(div, document.getElementById('typing'));
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const msgs = document.getElementById('messages');
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        function showTyping(show) {
+            document.getElementById('typing').classList.toggle('active', show);
+            if (show) scrollToBottom();
+        }
+
+        function switchToChat() {
+            document.getElementById('welcomeState').style.display = 'none';
+            document.getElementById('chatContainer').classList.add('active');
+        }
+
+        async function sendMessage() {
+            const text = textarea.value.trim();
+            if (!text) return alert('Please enter a message.');
+
+            switchToChat();
+            const fileInfo = file ? `Analyzing <strong>${file.name}</strong>:<br><br>` : '';
+            addMessage('user', `${fileInfo}${text.substring(0, 300)}${text.length > 300 ? '...' : ''}`);
+
+            textarea.value = '';
+            textarea.style.height = 'auto';
+            showTyping(true);
+            document.getElementById('sendBtn').disabled = true;
+
+            try {
+                const form = new FormData();
+                if (file) form.append('resume', file);
+                form.append('message', text);
+                form.append('options', Array.from(selectedOptions).join(','));
+
+                const token = localStorage.getItem('session_token');
+                const res = await fetch(`${API}/chat`, {
+                    method: 'POST',
+                    body: form,
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Analysis failed');
+                }
+
+                showTyping(false);
+                const data = await res.json();
+                addMessage('assistant', data.response);
+
+                const stats = JSON.parse(localStorage.getItem('resumeStats') || '{"resumes":0,"avgScore":0,"chats":0,"scores":[]}');
+                stats.chats++;
+                localStorage.setItem('resumeStats', JSON.stringify(stats));
+
+            } catch (err) {
+                showTyping(false);
+                addMessage('assistant', `Error: ${err.message}`);
+            } finally {
+                document.getElementById('sendBtn').disabled = false;
+            }
+        }
+
+        async function sendFollowUp() {
+            const text = chatTextarea.value.trim();
+            if (!text) return;
+
+            addMessage('user', text);
+            chatTextarea.value = '';
+            chatTextarea.style.height = 'auto';
+            showTyping(true);
+            document.getElementById('chatSendBtn').disabled = true;
+
+            try {
+                const form = new FormData();
+                if (file) form.append('resume', file);
+                form.append('message', text);
+                form.append('options', Array.from(selectedOptions).join(','));
+
+                const token = localStorage.getItem('session_token');
+                const res = await fetch(`${API}/chat`, {
+                    method: 'POST',
+                    body: form,
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Chat failed');
+                }
+
+                showTyping(false);
+                const data = await res.json();
+                addMessage('assistant', data.response);
+
+            } catch (err) {
+                showTyping(false);
+                addMessage('assistant', `Error: ${err.message}`);
+            } finally {
+                document.getElementById('chatSendBtn').disabled = false;
+            }
+        }
+
+        checkStatus();
+    </script>
+</body>
+
+</html>

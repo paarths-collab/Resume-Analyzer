@@ -1,0 +1,1068 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer - Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #09090b; color: #fff; min-height: 100vh; display: flex; }
+        .sidebar { width: 260px; background: linear-gradient(180deg, #0f0f12 0%, #09090b 100%); border-right: 1px solid rgba(255, 255, 255, 0.06); padding: 28px 20px; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { font-size: 1.4rem; font-weight: 700; margin-bottom: 40px; padding-left: 12px; }
+        .shiny-text { background: linear-gradient(120deg, #fff 0%, #fff 40%, #60a5fa 50%, #fff 60%, #fff 100%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: shineText 2s linear infinite; }
+        @keyframes shineText { to { background-position: 200% center; } }
+        .nav { flex: 1; }
+        .nav-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: #52525b; padding-left: 12px; margin-bottom: 12px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; color: #a1a1aa; text-decoration: none; margin-bottom: 6px; transition: all 0.2s; cursor: pointer; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.04); color: #fff; }
+        .nav-item.active { background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(96, 165, 250, 0.08) 100%); color: #fff; }
+        .nav-item svg { width: 20px; height: 20px; }
+        .status-badge { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: rgba(255, 255, 255, 0.02); border-radius: 12px; font-size: 0.85rem; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #52525b; }
+        .status-dot.online { background: #22c55e; box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); }
+        .status-dot.offline { background: #ef4444; }
+        main { flex: 1; margin-left: 260px; padding: 40px; min-height: 100vh; }
+        .analysis-container { max-width: 800px; margin: 0 auto; }
+        .analysis-upload { text-align: center; padding: 60px 40px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 24px; margin-bottom: 32px; }
+        .analysis-upload h2 { font-size: 1.5rem; margin-bottom: 8px; }
+        .analysis-upload p { color: #71717a; margin-bottom: 32px; }
+        .upload-box { width: 100%; padding: 40px; border: 2px dashed rgba(59, 130, 246, 0.3); border-radius: 16px; background: rgba(59, 130, 246, 0.05); cursor: pointer; transition: all 0.3s; margin-bottom: 24px; }
+        .upload-box:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.1); }
+        .upload-icon { width: 48px; height: 48px; color: #60a5fa; margin: 0 auto 16px; }
+        .upload-text { color: #a1a1aa; font-size: 0.9rem; }
+        .file-name { color: #60a5fa; font-size: 0.85rem; margin-top: 8px; }
+        input[type="file"] { display: none; }
+        .analyze-btn { padding: 18px 40px; background: linear-gradient(180deg, #0c1929 0%, #0a1420 50%, #060d14 100%); border: 1px solid rgb(19 79 223 / 30%); border-radius: 14px; color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 24px; box-shadow: 0 4px 20px rgb(48 122 203 / 20%); }
+        .analyze-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4); border-color: rgba(59, 130, 246, 0.5); }
+        .analyze-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .results-section { display: none; }
+        .results-section.active { display: block; }
+        .result-card { background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 20px; padding: 28px; margin-bottom: 20px; }
+        .result-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; color: #60a5fa; }
+        .result-card p, .result-card li { color: #a1a1aa; line-height: 1.7; }
+        .score-circle { position: relative; width: 100px; height: 100px; margin: 0 auto 16px; }
+        .score-circle svg { transform: rotate(-90deg); width: 100px; height: 100px; }
+        .score-circle circle { fill: none; stroke-width: 8; }
+        .score-bg { stroke: rgba(255, 255, 255, 0.1); }
+        .score-progress { stroke-linecap: round; stroke-dasharray: 213.6; stroke-dashoffset: 213.6; transition: stroke-dashoffset 1s ease; }
+        .score-value { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: 700; color: #60a5fa; }
+        .recommendations-list { list-style: none; max-height: 300px; overflow-y: auto; }
+        .recommendation-item { display: flex; gap: 10px; padding: 10px 0; font-size: 0.85rem; color: #a1a1aa; border-bottom: 1px solid rgba(255, 255, 255, 0.04); }
+        .recommendation-bullet { color: #3b82f6; }
+        .loading-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .loading-overlay.active { display: flex; }
+        .loading-content { text-align: center; }
+        .spinner { width: 48px; height: 48px; border: 3px solid rgba(59, 130, 246, 0.2); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 1.1rem; color: #a1a1aa; }
+        @media (max-width: 768px) { .sidebar { display: none; } main { margin-left: 0; padding: 20px; } }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><span class="shiny-text">Resume Analyzer</span></div>
+        <nav class="nav">
+            <div class="nav-label">Menu</div>
+            <a href="dashboard.html" class="nav-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+                Dashboard
+            </a>
+            <a href="analysis.html" class="nav-item active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Analysis
+            </a>
+            <a href="chat.html" class="nav-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                AI Chat
+            </a>
+        </nav>
+        <div class="status-badge">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Checking...</span>
+        </div>
+    </aside>
+
+    <main>
+        <div class="analysis-container">
+            <div class="analysis-upload" id="analysisUpload">
+                <h2><span class="shiny-text">Resume Analysis</span></h2>
+                <p>Upload your resume for a comprehensive AI-powered analysis</p>
+
+                <div class="upload-box" onclick="document.getElementById('analysisFile').click()">
+                    <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p class="upload-text">Click to upload resume (PDF)</p>
+                    <p class="file-name" id="analysisFileName"></p>
+                    <input type="file" id="analysisFile" accept=".pdf">
+                </div>
+
+                <div style="width: 100%; max-width: 500px; margin: 0 auto 20px;">
+                    <label style="font-size: 0.85rem; color: #71717a; margin-bottom: 8px; display: block;">Job Description (Optional)</label>
+                    <textarea id="analysisJobDesc" placeholder="Paste the job description here for a tailored analysis..." style="width: 100%; min-height: 120px; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; color: #fff; font-family: inherit; font-size: 0.9rem; resize: vertical;"></textarea>
+                </div>
+
+                <button class="analyze-btn" id="runAnalysisBtn" onclick="runAnalysis()" disabled>Analyze Resume</button>
+            </div>
+
+            <div class="results-section" id="analysisResults">
+                <div class="result-card">
+                    <h3>Match Score</h3>
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <div class="score-circle">
+                            <svg viewBox="0 0 80 80">
+                                <defs>
+                                    <linearGradient id="analysisGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#3b82f6" />
+                                        <stop offset="100%" stop-color="#60a5fa" />
+                                    </linearGradient>
+                                </defs>
+                                <circle class="score-bg" cx="40" cy="40" r="34" />
+                                <circle class="score-progress" id="analysisCircle" cx="40" cy="40" r="34" stroke="url(#analysisGradient)" />
+                            </svg>
+                            <div class="score-value" id="analysisScore">0%</div>
+                        </div>
+                        <p id="analysisExplanation" style="color: #a1a1aa; flex: 1;"></p>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>ATS Compatibility</h3>
+                    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+                        <div class="score-circle" style="width: 80px; height: 80px;">
+                            <svg viewBox="0 0 80 80" style="width: 80px; height: 80px;">
+                                <defs>
+                                    <linearGradient id="atsGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#22c55e" />
+                                        <stop offset="100%" stop-color="#4ade80" />
+                                    </linearGradient>
+                                </defs>
+                                <circle class="score-bg" cx="40" cy="40" r="34" />
+                                <circle class="score-progress" id="atsCircle" cx="40" cy="40" r="34" stroke="url(#atsGradient)" />
+                            </svg>
+                            <div class="score-value" id="atsScore" style="color: #4ade80; font-size: 1.2rem;">0%</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #4ade80; margin-bottom: 4px;">ATS Score</div>
+                            <p id="atsExplanation" style="color: #a1a1aa; font-size: 0.9rem;">Your resume's compatibility with Applicant Tracking Systems</p>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                        <div style="padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px;">
+                            <div style="font-size: 0.75rem; color: #71717a; margin-bottom: 4px;">KEYWORDS</div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span id="keywordScore" style="font-weight: 600;">0%</span>
+                                <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                                    <div id="keywordBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #4ade80); border-radius: 3px; transition: width 1s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px;">
+                            <div style="font-size: 0.75rem; color: #71717a; margin-bottom: 4px;">FORMAT</div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span id="formatScore" style="font-weight: 600;">0%</span>
+                                <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                                    <div id="formatBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #4ade80); border-radius: 3px; transition: width 1s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px;">
+                            <div style="font-size: 0.75rem; color: #71717a; margin-bottom: 4px;">HEADERS</div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span id="headerScore" style="font-weight: 600;">0%</span>
+                                <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                                    <div id="headerBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #4ade80); border-radius: 3px; transition: width 1s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px;">
+                            <div style="font-size: 0.75rem; color: #71717a; margin-bottom: 4px;">READABILITY</div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span id="readabilityScore" style="font-weight: 600;">0%</span>
+                                <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                                    <div id="readabilityBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #4ade80); border-radius: 3px; transition: width 1s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>Recommendations</h3>
+                    <ul id="analysisRecommendations" class="recommendations-list"></ul>
+                </div>
+
+                <button class="analyze-btn" onclick="resetAnalysis()" style="background: rgba(255,255,255,0.1); margin-top: 0;">Analyze Another Resume</button>
+            </div>
+        </div>
+    </main>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p class="loading-text shiny-text" id="loadingText">Analyzing...</p>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+        let analysisFile = null;
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${API}/health`);
+                const data = await res.json();
+                if (data.status === 'healthy' && data.gemini_configured) {
+                    document.getElementById('statusDot').className = 'status-dot online';
+                    document.getElementById('statusText').textContent = 'Online';
+                } else {
+                    document.getElementById('statusDot').className = 'status-dot offline';
+                    document.getElementById('statusText').textContent = 'API Error';
+                }
+            } catch {
+                document.getElementById('statusDot').className = 'status-dot offline';
+                document.getElementById('statusText').textContent = 'Offline';
+            }
+        }
+
+        function cleanText(text) {
+            if (!text) return '';
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/^#+\s*/gm, '').replace(/\n/g, '<br>');
+        }
+
+        function showLoading(show, text = 'Analyzing...') {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
+
+        document.getElementById('analysisFile').addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (f) {
+                analysisFile = f;
+                document.getElementById('analysisFileName').textContent = f.name;
+                document.getElementById('runAnalysisBtn').disabled = false;
+            }
+        });
+
+        async function runAnalysis() {
+            if (!analysisFile) return;
+            showLoading(true, 'Analyzing your resume...');
+
+            try {
+                const form = new FormData();
+                form.append('resume', analysisFile);
+                const jobDesc = document.getElementById('analysisJobDesc').value.trim();
+                form.append('job_description', jobDesc || 'Provide a comprehensive analysis of this resume including score, strengths, and areas for improvement.');
+
+                const res = await fetch(`${API}/analyze`, { method: 'POST', body: form });
+                const data = await res.json();
+
+                document.getElementById('analysisScore').textContent = data.score + '%';
+                document.getElementById('analysisExplanation').textContent = cleanText(data.score_explanation).replace(/<br>/g, ' ');
+
+                const circumference = 2 * Math.PI * 34;
+                const offset = circumference * (1 - data.score / 100);
+                document.getElementById('analysisCircle').style.strokeDashoffset = offset;
+
+                const atsScore = data.ats_score;
+                document.getElementById('atsScore').textContent = atsScore + '%';
+
+                const atsOffset = circumference * (1 - atsScore / 100);
+                setTimeout(() => { document.getElementById('atsCircle').style.strokeDashoffset = atsOffset; }, 200);
+
+                let atsExplanation = atsScore >= 80 ? 'Excellent! Your resume is highly compatible with ATS systems.' : atsScore >= 60 ? 'Good compatibility. Consider optimizing keywords for better results.' : 'Needs improvement. Review formatting and keyword usage.';
+                document.getElementById('atsExplanation').textContent = atsExplanation;
+
+                function updateMetric(scoreId, barId, score) {
+                    document.getElementById(scoreId).textContent = score + '%';
+                    const bar = document.getElementById(barId);
+                    bar.style.width = score + '%';
+                    bar.style.background = score >= 70 ? 'linear-gradient(90deg, #22c55e, #4ade80)' : score >= 50 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #ef4444, #f87171)';
+                }
+
+                setTimeout(() => {
+                    updateMetric('keywordScore', 'keywordBar', data.keyword_score);
+                    updateMetric('formatScore', 'formatBar', data.format_score);
+                    updateMetric('headerScore', 'headerBar', data.header_score);
+                    updateMetric('readabilityScore', 'readabilityBar', data.readability_score);
+                }, 300);
+
+                const recs = cleanText(data.improvements).split('<br>').filter(s => s.trim()).map(s => `<li class="recommendation-item"><span class="recommendation-bullet">→</span><span>${s.replace(/^[-•*\d.)\]]+\s*/, '').trim()}</span></li>`).join('');
+                document.getElementById('analysisRecommendations').innerHTML = recs || '<li style="color: #52525b;">No recommendations</li>';
+
+                document.getElementById('analysisUpload').style.display = 'none';
+                document.getElementById('analysisResults').classList.add('active');
+
+                const stats = JSON.parse(localStorage.getItem('resumeStats') || '{"resumes":0,"avgScore":0,"chats":0,"scores":[]}');
+                stats.resumes++;
+                stats.scores.push(data.score);
+                localStorage.setItem('resumeStats', JSON.stringify(stats));
+
+            } catch (err) {
+                alert('Error analyzing resume. Please try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function resetAnalysis() {
+            document.getElementById('analysisUpload').style.display = 'block';
+            document.getElementById('analysisResults').classList.remove('active');
+            document.getElementById('analysisFileName').textContent = '';
+            document.getElementById('analysisJobDesc').value = '';
+            document.getElementById('runAnalysisBtn').disabled = true;
+            analysisFile = null;
+        }
+
+        checkStatus();
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer - Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 24px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .logo {
+            font-size: 1.3rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+        }
+
+        .shiny-text {
+            background: linear-gradient(120deg, #888 0%, #888 40%, #fff 50%, #888 60%, #888 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 4s linear infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                background-position: 200% center;
+            }
+
+            100% {
+                background-position: -200% center;
+            }
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-tab {
+            font-size: 0.95rem;
+            color: #666;
+            text-decoration: none;
+            padding: 8px 0;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-tab:hover {
+            color: #999;
+        }
+
+        .nav-tab.active {
+            color: #fff;
+            border-bottom-color: #fff;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-dot.online {
+            background: #22c55e;
+        }
+
+        .status-dot.offline {
+            background: #ef4444;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 720px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 0;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .welcome h2 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .welcome p {
+            font-size: 1rem;
+            color: #555;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .message-group {
+            margin-bottom: 32px;
+        }
+
+        .message-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #444;
+            margin-bottom: 12px;
+        }
+
+        .message-content {
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #ccc;
+        }
+
+        .message-content.user-text {
+            color: #888;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .analysis-result {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .score-ring {
+            position: relative;
+            width: 64px;
+            height: 64px;
+        }
+
+        .score-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-ring circle {
+            fill: none;
+            stroke-width: 4;
+        }
+
+        .score-ring .bg {
+            stroke: rgba(255, 255, 255, 0.05);
+        }
+
+        .score-ring .progress {
+            stroke: #fff;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .score-number {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .score-meta h3 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .score-meta p {
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .result-section {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .result-section:last-child {
+            border-bottom: none;
+        }
+
+        .result-section h4 {
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .result-section p {
+            font-size: 0.95rem;
+            color: #999;
+            line-height: 1.7;
+        }
+
+        .ats-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .metric-item {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .suggestions-list {
+            list-style: none;
+        }
+
+        .suggestions-list li {
+            font-size: 0.95rem;
+            color: #999;
+            line-height: 1.6;
+            padding: 8px 0;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .suggestions-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 14px;
+            width: 4px;
+            height: 4px;
+            background: #444;
+            border-radius: 50%;
+        }
+
+        .typing {
+            display: none;
+            gap: 6px;
+            padding: 20px 0;
+        }
+
+        .typing.active {
+            display: flex;
+        }
+
+        .typing span {
+            width: 4px;
+            height: 4px;
+            background: #444;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .input-area {
+            padding: 24px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .file-row {
+            margin-bottom: 16px;
+        }
+
+        .file-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 24px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #888;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-btn:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .file-btn.attached {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .file-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .file-btn input {
+            display: none;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: none;
+            transition: all 0.2s;
+            min-height: 52px;
+            max-height: 160px;
+        }
+
+        textarea::placeholder {
+            color: #444;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            background: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+        }
+
+        .send-btn:disabled {
+            background: #222;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .send-btn svg {
+            width: 18px;
+            height: 18px;
+            color: #000;
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 0.85rem;
+            color: #f87171;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: #222;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 640px) {
+            .header {
+                padding: 16px 20px;
+            }
+
+            .main {
+                padding: 0 16px;
+            }
+
+            .result-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">
+            <span class="shiny-text">Resume Analyzer</span>
+        </div>
+        <nav class="nav-tabs">
+            <a href="/dashboard" class="nav-tab">Dashboard</a>
+            <a href="/analysis" class="nav-tab active">Analysis</a>
+            <a href="/chat" class="nav-tab">Chat</a>
+            <a href="/profile" class="nav-tab">Profile</a>
+        </nav>
+        <div class="status-badge">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">Connecting...</span>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="messages" id="messages">
+            <div class="welcome" id="welcome">
+                <h2>Analyze Your Resume</h2>
+                <p>Upload your resume and provide a job description to receive AI-powered insights and recommendations.
+                </p>
+            </div>
+        </div>
+
+        <div class="typing" id="typing">
+            <span></span><span></span><span></span>
+        </div>
+
+        <div class="input-area">
+            <div class="file-row">
+                <label class="file-btn" id="fileBtn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                    </svg>
+                    <span id="fileName">Attach resume</span>
+                    <input type="file" id="resumeFile" accept=".pdf">
+                </label>
+            </div>
+            <div class="input-row">
+                <div class="input-wrapper">
+                    <textarea id="jobDesc" placeholder="Paste job description..." rows="1"></textarea>
+                </div>
+                <button class="send-btn" id="sendBtn" onclick="analyze()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API = 'http://127.0.0.1:8000';
+        let file = null;
+        const textarea = document.getElementById('jobDesc');
+
+        textarea.addEventListener('input', () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 160) + 'px';
+        });
+
+        textarea.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                analyze();
+            }
+        });
+
+        async function checkStatus() {
+            try {
+                const res = await fetch(`${API}/health`);
+                const data = await res.json();
+                if (data.status === 'healthy' && data.gemini_configured) {
+                    document.getElementById('statusDot').className = 'status-dot online';
+                    document.getElementById('statusText').textContent = 'Ready';
+                } else {
+                    document.getElementById('statusDot').className = 'status-dot offline';
+                    document.getElementById('statusText').textContent = 'API Error';
+                }
+            } catch {
+                document.getElementById('statusDot').className = 'status-dot offline';
+                document.getElementById('statusText').textContent = 'Offline';
+            }
+        }
+        checkStatus();
+
+        document.getElementById('resumeFile').addEventListener('change', e => {
+            const f = e.target.files[0];
+            if (f?.type === 'application/pdf') {
+                file = f;
+                document.getElementById('fileName').textContent = f.name;
+                document.getElementById('fileBtn').classList.add('attached');
+            } else if (f) {
+                showError('Please upload a PDF file');
+            }
+        });
+
+        function cleanText(text) {
+            return text.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').replace(/`/g, '').replace(/#{1,6}\s*/g, '').trim();
+        }
+
+        function addUserMessage(text) {
+            const welcome = document.getElementById('welcome');
+            if (welcome) welcome.remove();
+
+            const group = document.createElement('div');
+            group.className = 'message-group';
+            group.innerHTML = `
+                <div class="message-label">You</div>
+                <div class="message-content user-text">${text}</div>
+            `;
+            document.getElementById('messages').appendChild(group);
+            scrollToBottom();
+        }
+
+        function addResult(data) {
+            const group = document.createElement('div');
+            group.className = 'message-group';
+
+            const suggestions = cleanText(data.improvements).split('\n').filter(s => s.trim()).map(s => `<li>${s.replace(/^[-•*\d.]\s*/, '').trim()}</li>`).join('');
+
+            group.innerHTML = `
+                <div class="message-label">Analysis</div>
+                <div class="message-content">
+                    <div class="analysis-result">
+                        <div class="result-header">
+                            <div class="score-ring">
+                                <svg width="64" height="64" viewBox="0 0 64 64">
+                                    <circle class="bg" cx="32" cy="32" r="28"/>
+                                    <circle class="progress" cx="32" cy="32" r="28" stroke-dasharray="176" stroke-dashoffset="${176 - (176 * data.score / 100)}"/>
+                                </svg>
+                                <div class="score-number">${data.score}%</div>
+                            </div>
+                            <div class="score-meta">
+                                <h3>Match Score</h3>
+                                <p>${cleanText(data.score_explanation)}</p>
+                            </div>
+                        </div>
+                        <div class="result-section">
+                            <h4>ATS Compatibility</h4>
+                            <p>Your resume scores ${data.ats_score}% for ATS systems</p>
+                            <div class="ats-metrics">
+                                <div class="metric-item">
+                                    <div class="metric-label">Keywords</div>
+                                    <div class="metric-value">${data.keyword_score}%</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Format</div>
+                                    <div class="metric-value">${data.format_score}%</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Headers</div>
+                                    <div class="metric-value">${data.header_score}%</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Readability</div>
+                                    <div class="metric-value">${data.readability_score}%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-section">
+                            <h4>Recommendations</h4>
+                            <ul class="suggestions-list">${suggestions}</ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('messages').appendChild(group);
+            scrollToBottom();
+        }
+
+        function showError(msg) {
+            const welcome = document.getElementById('welcome');
+            if (welcome) welcome.remove();
+
+            const group = document.createElement('div');
+            group.className = 'message-group';
+            group.innerHTML = `
+                <div class="message-label">System</div>
+                <div class="message-content error-msg">${msg}</div>
+            `;
+            document.getElementById('messages').appendChild(group);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const msgs = document.getElementById('messages');
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        function showTyping(show) {
+            document.getElementById('typing').classList.toggle('active', show);
+            if (show) scrollToBottom();
+        }
+
+        async function analyze() {
+            const desc = textarea.value.trim();
+
+            if (!file) return showError('Please attach your resume first.');
+            if (!desc) return showError('Please enter a job description.');
+
+            const preview = desc.length > 150 ? desc.substring(0, 150) + '...' : desc;
+            addUserMessage(`Analyzing <strong>${file.name}</strong> for position:<br><br>${preview}`);
+
+            textarea.value = '';
+            textarea.style.height = 'auto';
+            showTyping(true);
+
+            try {
+                const form = new FormData();
+                form.append('resume', file);
+                form.append('job_description', desc);
+
+                const token = localStorage.getItem('session_token');
+                const res = await fetch(`${API}/analyze`, {
+                    method: 'POST',
+                    body: form,
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || 'Analysis failed');
+                }
+
+                showTyping(false);
+                const data = await res.json();
+                addResult(data);
+
+                const stats = JSON.parse(localStorage.getItem('resumeStats') || '{"resumes":0,"avgScore":0,"chats":0,"scores":[]}');
+                stats.resumes++;
+                stats.scores.push(data.score);
+                localStorage.setItem('resumeStats', JSON.stringify(stats));
+
+            } catch (err) {
+                showTyping(false);
+                if (err.message.includes('Failed to fetch')) {
+                    showError('Unable to connect to server. Please ensure the backend is running.');
+                } else {
+                    showError(err.message);
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
